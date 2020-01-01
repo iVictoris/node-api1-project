@@ -1,18 +1,15 @@
 // implement your API here
 const express = require("express");
-const bodyParser = require("body-parser");
 const { find, findById, insert, update, remove } = require("./data/db");
-
-const controlPanel = action => {};
 
 const server = express();
 server.use(
-  bodyParser.urlencoded({
+  express.urlencoded({
     extended: true
   })
 );
 
-server.use(bodyParser.json());
+server.use(express.json());
 
 server.get("/", async (_, res) => {
   res.status(200).send("Hello World");
@@ -34,10 +31,9 @@ server
       return;
     }
   })
-  .post(async (req, res) => {
+  .post(async ({ body: { name, bio } }, res) => {
     // create user
     // check data
-    const { name, bio } = req.body;
     // If the request body is missing the name or bio property:
     if (!name || !bio) {
       res
@@ -97,8 +93,7 @@ server
       res.status(500).json({ errorMessage: "The user could not be removed" });
     }
   })
-  .put(async ({ params: { id }, body }, res) => {
-    const { name, bio } = req.body;
+  .put(async ({ params: { id }, body: { name, bio } }, res) => {
     // If the request body is missing the name or bio property:
     if (!name || !bio) {
       res
@@ -121,8 +116,8 @@ server
       const updatedUser = { ...user, name, bio };
 
       // save user
-      const savedUser = update(updatedUser.id, updatedUser);
-      res.status(200).json(savedUser);
+      await update(updatedUser.id, updatedUser);
+      res.status(200).json(updatedUser);
     } catch (e) {
       res
         .status(500)
